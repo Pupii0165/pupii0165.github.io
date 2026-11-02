@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>英検準1級 穴埋めトレーニング</title>
+<style>
+:root{--bg:#eef3f5;--fg:#12252e;--card:#fff;--mut:#5b6f78;--line:#cfdbe0;--ac:#0e6b7a;--acf:#fff;--ok:#146c43;--okb:#e2f4ea;--ng:#a4262c;--ngb:#fbe5e6;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1a1f;--fg:#e3edf0;--card:#17262d;--mut:#94a9b1;--line:#2b414a;--ac:#5cc2d1;--acf:#0b1418;--ok:#6fdc9d;--okb:#123324;--ng:#ff9a9f;--ngb:#3a1a1c}}
+:root[data-theme="dark"]{--bg:#0f1a1f;--fg:#e3edf0;--card:#17262d;--mut:#94a9b1;--line:#2b414a;--ac:#5cc2d1;--acf:#0b1418;--ok:#6fdc9d;--okb:#123324;--ng:#ff9a9f;--ngb:#3a1a1c}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.7 -apple-system,"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif}
+.w{max-width:680px;margin:0 auto;padding:16px}
+h1{font-size:1.35rem;margin:8px 0 14px}
+.c{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 14px}
+.m{color:var(--mut);font-size:.88rem;margin:4px 0 8px}
+.r{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:6px 0;border-top:1px solid var(--line)}
+.r span{flex:1;min-width:120px}
+.r input{flex:2;min-width:140px}
+input,select{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);max-width:100%}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--fg);padding:7px 12px}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.p{background:var(--ac);color:var(--acf);border-color:var(--ac);font-weight:600;padding:10px 18px}
+.q{font-size:1.08rem;white-space:pre-line;line-height:1.8}
+.o{display:block;width:100%;text-align:left;margin:8px 0;padding:11px 14px;border-radius:10px}
+.o:disabled{cursor:default;color:var(--fg)}
+.o.ok{background:var(--okb);border-color:var(--ok);color:var(--ok);font-weight:600}
+.o.ng{background:var(--ngb);border-color:var(--ng);color:var(--ng)}
+.g1{color:var(--ok);font-weight:700}.b1{color:var(--ng);font-weight:700}
+.ex{white-space:pre-line;background:var(--bg);border-radius:8px;padding:8px 12px;margin:8px 0;font-size:.92rem}
+.e{padding:10px 0;border-top:1px solid var(--line)}
+.bt{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin:3px 0 8px}
+.bf{height:100%;background:var(--ac)}.bf.g{background:var(--ok)}
+.k{display:flex;justify-content:space-between;gap:8px;font-size:.85rem;color:var(--mut)}
+.f{display:flex;gap:10px 16px;flex-wrap:wrap;align-items:center}
+.f label{display:inline-flex;gap:6px;align-items:center}
+[hidden]{display:none!important}
+.big{font-size:2.2rem;font-weight:700;margin:6px 0}
+.pt{font-weight:700;color:var(--ac)}
+button:disabled{opacity:.5;cursor:default}
+@keyframes pop{from{transform:scale(.85);opacity:.3}to{transform:none;opacity:1}}
+.pop{display:inline-block;animation:pop .35s ease-out}
+@media(prefers-reduced-motion:reduce){.pop{animation:none}}
+</style></head><body><div class="w" id="app"></div>
+<script>
+const B='＿＿＿＿',$=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ld=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}};
+const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+// 内蔵の解答(2015-3, 2016-1, 2016-2)。ファイル内の「解答: 1 3 2 …」行があればそちらを優先
+const ANS={"2015-3":"1324122113421312412312314","2016-1":"3132414222423212413323414","2016-2":"1231221341213144432231314"};
+let bank=ld('eiken-bank',{}),st=ld('eiken-stat',{}),cfg=ld('eiken-cfg',{md:'all',ex:'',ct:10,sh:true}),Q=null,msg='',err='';
+const fmt=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const today=()=>fmt(new Date());
+const cleanRw=o=>{o=o&&typeof o=='object'?o:{};const n=(v,d=0)=>Number.isFinite(+v)&&+v>=0?Math.floor(+v):d;
+ const days={};if(o.days&&typeof o.days=='object')for(const k of Object.keys(o.days)){const v=o.days[k];if(/^\d{4}-\d\d-\d\d$/.test(k)&&v&&typeof v=='object')days[k]={n:n(v.n),ok:v.ok?1:0}}
+ return{pts:n(o.pts),earned:n(o.earned),best:n(o.best),goal:Math.max(1,n(o.goal,20)),days,
+  rewards:(Array.isArray(o.rewards)?o.rewards:[]).filter(r=>r&&typeof r.name=='string'&&n(r.cost)>0).slice(0,50).map(r=>({id:String(r.id||'').replace(/[^a-z0-9]/gi,'')||Math.random().toString(36).slice(2),name:r.name.slice(0,40),cost:n(r.cost)})),
+  log:(Array.isArray(o.log)?o.log:[]).filter(r=>r&&typeof r.name=='string').slice(0,30).map(r=>({t:String(r.t||'').slice(0,10),name:r.name.slice(0,40),cost:n(r.cost)}))}};
+let rw=cleanRw(ld('eiken-rw',null)),rmsg='',rwc='';
+const svr=()=>sv('eiken-rw',rw);
+const dayOf=k=>rw.days[k]||{n:0,ok:0};
+function streak(){const d=new Date();if(!dayOf(fmt(d)).ok)d.setDate(d.getDate()-1);let c=0;while(c<4000&&dayOf(fmt(d)).ok){c++;d.setDate(d.getDate()-1)}return c}
+const rerr=t=>{const e=$('#rm');if(e)e.textContent=t};
+function setGoal(){const v=parseInt($('#gl').value);if(!(v>=1&&v<=1000))return rerr('目標は1〜1000問の数字で入力してください');rw.goal=v;svr();rmsg='今日の目標を'+v+'問にしました';home()}
+function addReward(){const name=$('#rn').value.trim(),cost=parseInt($('#rc').value);
+ if(!name)return rerr('ごほうびの名前を入力してください');
+ if(!(cost>=1&&cost<=100000))return rerr('必要ポイントは1〜100000の数字で入力してください');
+ rw.rewards.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:name.slice(0,40),cost});svr();rmsg='登録しました';home()}
+function delReward(id){rw.rewards=rw.rewards.filter(r=>r.id!=id);rwc='';svr();rmsg='';home()}
+function askUse(id){rwc=id;home()}
+function useRw(id){const r=rw.rewards.find(x=>x.id==id);rwc='';
+ if(r&&rw.pts>=r.cost){rw.pts-=r.cost;rw.log.unshift({t:today(),name:r.name,cost:r.cost});rw.log=rw.log.slice(0,30);svr();rmsg=`「${r.name}」を使いました。楽しんでください!`}
+ home()}
+ld('eiken-wrong',[]).forEach(k=>{if(!(k in st))st[k]=0});try{localStorage.removeItem('eiken-wrong')}catch(e){}sv('eiken-stat',st);
+const fix=s=>s.replace(/\btum(s?)\b/g,'turn$1');
+function parse(t){const r={id:null,qs:[],fa:null};let q=null,m;
+ for(let l of t.replace(/\r/g,'').split('\n')){l=l.trim();if(!l||/^-{3,}$/.test(l))continue;
+  if(!r.id&&(m=l.match(/^(20\d\d)\s*[-_]\s*(\d)$/))){r.id=m[1]+'-'+m[2];continue}
+  if(m=l.match(/^(?:解答|答え|answers?)\s*[:：]\s*(.+)$/i)){r.fa=m[1].match(/[1-4]/g);continue}
+  if(q&&(m=l.match(/^答\s*[:：]\s*([1-4])/))){q.a=+m[1];continue}
+  if(q&&(m=l.match(/^解説\s*[:：]\s*(.+)$/))){q.x=m[1];continue}
+  if(m=l.match(/^[（(]\s*(\d{1,2})\s*[）)]\s*(.*)$/)){q={n:+m[1],s:m[2],o:{}};r.qs.push(q);continue}
+  if(!q)continue;
+  const k=Object.keys(q.o).length;
+  if((m=l.match(/^([1-4])\s+(\S.*)$/))&&!q.o[m[1]])q.o[m[1]]=fix(m[2]);
+  else if(k>0&&k<4){q.o[[1,2,3,4].find(x=>!q.o[x])]=fix(l)}
+  else q.s+=' '+l}
+ r.qs.forEach(q=>{q.s=fix(q.s).replace(/[（(]\s*[）)]/g,B).replace(/[（(]/g,B).replace(/ ([AB]:)/g,'\n$1').trim();if(!q.s.includes(B))q.s=q.s.replace(/[）)]/,B)});
+ return r}
+async function exportData(){const d={app:'eiken-pre1',v:2,date:new Date().toISOString(),bank,stat:st,cfg,rw},text=JSON.stringify(d),fn='eiken-backup-'+new Date().toISOString().slice(0,10)+'.json';let dl=null;
+ try{dl=window.claude?await window.claude.use('downloads'):null}catch(e){}
+ if(dl){try{await dl.save({filename:fn,data:text});msg='書き出しました'}catch(e){msg=e&&e.code=='declined'?'保存をキャンセルしました':'保存できませんでした('+(e&&e.code||'error')+')'}}
+ else{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'application/json'}));a.download=fn;document.body.appendChild(a);a.click();a.remove();msg='書き出しました'}
+ home()}
+async function imp(f){let d;try{d=JSON.parse(await f.text())}catch(e){return '読み込めません(JSONが壊れています)'}
+ if(!d||d.app!='eiken-pre1'||typeof d.bank!='object'||!d.bank)return 'このアプリのバックアップではありません';
+ let nq=0,ns=0;
+ for(const id of Object.keys(d.bank)){const l=d.bank[id];if(!Array.isArray(l))continue;
+  const g=l.filter(q=>q&&typeof q.s=='string'&&Array.isArray(q.o)&&q.o.length==4&&Number.isInteger(q.n)).map(q=>({n:q.n,s:q.s,o:q.o.map(String),a:+q.a||0,x:typeof q.x=='string'?q.x:''}));
+  if(g.length){bank[id]=g;nq+=g.length}}
+ if(d.stat&&typeof d.stat=='object')for(const k of Object.keys(d.stat)){if(d.stat[k]===0||d.stat[k]===1){st[k]=d.stat[k];ns++}}
+ let rm='';
+ if(d.rw&&typeof d.rw=='object'){const n=cleanRw(d.rw);if(n.earned>=rw.earned){rw=n;svr();rm='。ポイントとごほうびも復元しました'}else rm='。ポイントはこのブラウザの方が多いので、そのままにしました'}
+ sv('eiken-bank',bank);sv('eiken-stat',st);return `バックアップから${nq}問・成績${ns}件を復元${rm}`}
+async function load(fs){const out=[];
+ for(const f of fs){
+  if(/\.json$/i.test(f.name)){out.push(esc(f.name)+': '+await imp(f));continue}
+  const r=parse(await f.text());
+  if(!r.id||!r.qs.length){out.push(esc(f.name)+': 「2016-1」のような見出しか問題が見つかりません');continue}
+  const A=r.fa&&r.fa.length>=r.qs.length?r.fa:(ANS[r.id]||'').split('');
+  const l=r.qs.filter(q=>Object.keys(q.o).length==4).map(q=>({n:q.n,s:q.s,o:[1,2,3,4].map(x=>q.o[x]),a:q.a||+A[q.n-1]||0,x:q.x||''}));
+  bank[r.id]=l;const na=l.filter(q=>q.a).length,dr=r.qs.length-l.length;
+  out.push(`${r.id}: ${l.length}問を保存${na<l.length?`(解答なし${l.length-na}問)`:''}${dr?`、選択肢が不完全な${dr}問を除外`:''}`)}
+ sv('eiken-bank',bank);msg=out.join('<br>');home()}
+function setA(i){const v=document.getElementById('a'+i).value.match(/[1-4]/g)||[];
+ bank[i].forEach(q=>{if(v[q.n-1])q.a=+v[q.n-1]});sv('eiken-bank',bank);msg='';home()}
+function del(i){delete bank[i];Object.keys(st).filter(k=>k.startsWith(i+'#')).forEach(k=>delete st[k]);sv('eiken-bank',bank);sv('eiken-stat',st);msg='';home()}
+const pct=(a,b)=>b?Math.round(a/b*100):0;
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+function sx(i){let t=0,s=0,c=0;for(const q of bank[i]){if(!q.a)continue;t++;const v=st[i+'#'+q.n];if(v!==undefined){s++;if(v)c++}}return{t,s,c,w:s-c}}
+function mdc(){const m=$('#md').value;$('#exl').hidden=m!='ex';$('#shl').hidden=m!='ex'}
+function home(){Q=null;const ids=Object.keys(bank).sort();let T=0,S=0,C=0;
+ const rows=ids.map(i=>{const x=sx(i);T+=x.t;S+=x.s;C+=x.c;const na=bank[i].length-x.t;
+  return `<div class="e"><div class="r" style="border:0;padding:0"><b>${i}</b><span class="m">全${x.t}問${na?`(解答なし${na}問)`:''}</span><button onclick="del('${i}')">削除</button></div>
+<div class="k"><span>解いた ${x.s}問(${pct(x.s,x.t)}%)</span><span>未回答 ${x.t-x.s}問</span></div><div class="bt"><div class="bf" style="width:${pct(x.s,x.t)}%"></div></div>
+<div class="k"><span>正解 ${x.c}問(${pct(x.c,x.t)}%)</span><span>間違い ${x.w}問</span></div><div class="bt"><div class="bf g" style="width:${pct(x.c,x.t)}%"></div></div>
+${na?`<div class="r" style="border:0"><input id="a${i}" placeholder="解答を順に入力 例 1324…"><button onclick="setA('${i}')">解答を設定</button></div>`:''}</div>`}).join('');
+ const W=S-C,o=(v,t)=>`<option value="${v}"${cfg.md==v?' selected':''}>${t}</option>`;
+ const dd=dayOf(today()),sk=streak();
+ const rrows=rw.rewards.slice().sort((a,b)=>a.cost-b.cost).map(r=>{const can=rw.pts>=r.cost;
+  return `<div class="e"><div class="r" style="border:0;padding:0"><b>${esc(r.name)}</b><span class="m">${r.cost}pt${can?'':`(あと${r.cost-rw.pts}pt)`}</span>${rwc==r.id?`<button class="p" onclick="useRw('${r.id}')">本当に使う(−${r.cost}pt)</button><button onclick="askUse('')">やめる</button>`:`<button class="p" onclick="askUse('${r.id}')"${can?'':' disabled'}>使う</button><button onclick="delReward('${r.id}')">削除</button>`}</div><div class="bt"><div class="bf" style="width:${pct(Math.min(rw.pts,r.cost),r.cost)}%"></div></div></div>`}).join('');
+ $('#app').innerHTML=`<h1>英検準1級 穴埋めトレーニング</h1>
+<div class="c"><b>出題する</b><div class="f" style="margin-top:8px"><label>モード <select id="md" onchange="mdc()">${o('all','全件からランダム')}${o('w',`間違えた問題からランダム(${W}問)`)}${o('ex','回を指定して出題')}</select></label>
+<label id="exl">回 <select id="ex">${ids.map(i=>`<option value="${i}"${cfg.ex==i?' selected':''}>${i}(${bank[i].filter(q=>q.a).length}問)</option>`).join('')}</select></label>
+<label>問題数 <input id="ct" type="number" min="1" value="${cfg.ct}" placeholder="全件" style="width:5.5em"></label>
+<label id="shl"><input type="checkbox" id="sh"${cfg.sh?' checked':''}>ランダムな順番</label></div>
+<p class="m">指定した問題数が対象の問題数より多い場合は、その分すべて出して終了します(空欄なら全件)。「回を指定」では、チェックを外すと問題番号順に出ます。</p>
+<button class="p" onclick="start()">スタート</button><p class="m">${err}</p></div>
+<div class="c"><b>ごほうび</b><p class="m">所持 <span class="pt">${rw.pts}pt</span>(これまでの獲得 ${rw.earned}pt)</p>
+<div class="k"><span>今日 ${dd.n} / ${rw.goal}問${dd.ok?'(目標達成)':''}</span><span>目標達成の連続 ${sk}日</span></div><div class="bt"><div class="bf" style="width:${Math.min(100,pct(dd.n,rw.goal))}%"></div></div>
+<div class="f"><label>今日の目標 <input id="gl" type="number" min="1" max="1000" value="${rw.goal}" style="width:5em">問</label><button onclick="setGoal()">変更</button></div>
+<p class="m">正解1問で10pt。連続正解中は、連続数のぶんボーナスが付きます(最大+10)。間違えた問題を復習で正解すると+10。今日の目標(解いた問題数)を達成すると+50。20問すべて正解すると約400ptが目安です。</p>
+${rrows||'<p class="m">ごほうびはまだありません。下のフォームから登録してください。</p>'}
+<div class="r"><input id="rn" maxlength="40" placeholder="ごほうび(例: コーヒーを飲む)"><input id="rc" type="number" min="1" placeholder="必要pt(例: 300)" style="max-width:9em"><button class="p" onclick="addReward()">登録</button></div>
+<p class="m" id="rm">${rmsg}</p>${rw.log.length?`<p class="m">最近使ったごほうび: ${rw.log.slice(0,5).map(x=>esc(x.t+' '+x.name)).join(' / ')}</p>`:''}</div>
+<div class="c"><b>過去問ファイルを追加</b><p class="m">「2016-1」のような見出しと (1)〜(25) を含む.txtを選びます(複数可)。解答・解説つきのファイルなら解説も出ます。バックアップ(.json)もここから読み込めます。同じ回を読み込むと上書きされ(成績は残ります)、内容はこのブラウザに保存されます。</p><input type="file" id="f" accept=".txt,.json,text/plain,application/json" multiple onchange="load(this.files)"><p class="m">${msg}</p><hr style="border:0;border-top:1px solid var(--line);margin:10px 0"><b>バックアップ</b><p class="m">問題・成績・ポイント・ごほうびを1つのファイル(.json)に書き出します。別のPCでは、上の「ファイルを選択」でこのファイルを読み込めば、同じ状態に戻ります(同じ回・同じ問題は上書き)。定期的に書き出しておくと安心です。</p><button onclick="exportData()">書き出す(問題・成績・ポイント)</button></div>
+<div class="c"><b>保存済み: ${ids.length}回・出題できる問題 ${T}問</b>${ids.length?`<p class="m">全体: 解いた ${S}問(${pct(S,T)}%)/正解 ${C}問(${pct(C,T)}%)/間違い ${W}問。正解・間違いは各問題の直近の結果で数えます。</p>`:'<p class="m">まだファイルがありません。上のボタンから追加してください。</p>'}${rows}</div>`;msg='';err='';rmsg='';mdc()}
+function start(){const md=$('#md').value,ex=$('#ex').value,n=parseInt($('#ct').value)||0,sh=$('#sh').checked;
+ cfg={md,ex,ct:n||'',sh};sv('eiken-cfg',cfg);let a=[];
+ for(const i in bank){if(md=='ex'&&i!=ex)continue;for(const q of bank[i]){const k=i+'#'+q.n;if(q.a&&(md!='w'||st[k]===0))a.push({...q,k,e:i})}}
+ if(!a.length){err=md=='w'?'間違えた問題がまだありません':'出題できる問題がありません';return home()}
+ if(md!='ex'||sh)shuf(a);else a.sort((x,y)=>x.n-y.n);
+ Q={l:n&&n<a.length?a.slice(0,n):a,i:0,s:0,combo:0,best:0,gain:0};ask()}
+const sbt=()=>`所持 ${rw.pts}pt${Q.combo>=2?`・${Q.combo}連続中`:''}`;
+function ask(){const q=Q.l[Q.i];
+ $('#app').innerHTML=`<p class="m">${Q.i+1} / ${Q.l.length}(${q.e} 問${q.n}) <span id="sb">${sbt()}</span> <button onclick="home()" style="float:right">やめる</button></p>
+<div class="c"><div class="q">${esc(q.s)}</div>${q.o.map((t,j)=>`<button class="o" onclick="pick(${j+1})">${j+1}. ${esc(t)}</button>`).join('')}<div id="fb"></div></div>`}
+function pick(j){const q=Q.l[Q.i],ok=j==q.a,prev=st[q.k];
+ document.querySelectorAll('.o').forEach((b,x)=>{b.disabled=true;if(x+1==q.a)b.classList.add('ok');else if(x+1==j)b.classList.add('ng')});
+ st[q.k]=ok?1:0;
+ let g=0,pr=[],ms='';const t=today(),d=rw.days[t]||(rw.days[t]={n:0,ok:0});d.n++;
+ if(ok){Q.s++;Q.combo++;Q.best=Math.max(Q.best,Q.combo);g+=10;pr.push('基本10');
+  if(Q.combo>=2){const b=Math.min(Q.combo,10);g+=b;pr.push(Q.combo+'連続で+'+b)}
+  if(prev===0){g+=10;pr.push('復習で正解+10')}
+  rw.best=Math.max(rw.best,Q.combo);if(Q.combo%5==0)ms=Q.combo+'連続正解!'}
+ else Q.combo=0;
+ if(!d.ok&&d.n>=rw.goal){d.ok=1;g+=50;pr.push('今日の目標達成+50')}
+ rw.pts+=g;rw.earned+=g;Q.gain+=g;sv('eiken-stat',st);svr();
+ const sb=$('#sb');if(sb)sb.textContent=sbt();
+ $('#fb').innerHTML=`<p class="${ok?'g1':'b1'}">${ok?'正解':'不正解(正解は '+q.a+')'}${g?` <span class="pop pt">+${g}pt</span>`:''}</p>${pr.length?`<p class="m">${pr.join('、')}</p>`:''}${ms?`<p class="pt pop">${ms}</p>`:''}${q.x?`<p class="ex">解説: ${esc(q.x).replace(' ／ ','\n')}</p>`:''}<button class="p" onclick="nxt()">${Q.i+1<Q.l.length?'次の問題':'結果を見る'}</button>`}
+function nxt(){Q.i++;Q.i<Q.l.length?ask():fin()}
+function fin(){const n=Q.l.length;
+ $('#app').innerHTML=`<h1>結果</h1><div class="c"><div class="big">${Q.s} / ${n}</div><p class="m">正答率 ${Math.round(Q.s/n*100)}%。間違えた問題は「間違えた問題からランダム」で復習できます。</p><p>獲得 <span class="pt">+${Q.gain}pt</span>(最高 ${Q.best}連続)<br>所持 ${rw.pts}pt<br>今日 ${dayOf(today()).n} / ${rw.goal}問${dayOf(today()).ok?'(目標達成)':''}・目標達成の連続 ${streak()}日</p><button class="p" onclick="home()">ホームに戻る</button></div>`}
+home();
+</script></body></html>
