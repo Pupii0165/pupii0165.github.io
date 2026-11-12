@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>単語フラッシュカード準1級</title>
+<style>
+:root {
+  --bg: #e9edf3;
+  --panel: #ffffff;
+  --ink: #1b2335;
+  --sub: #5b6579;
+  --line: #d2d9e5;
+  --accent: #2b59c3;
+  --accent-ink: #ffffff;
+  --good: #17744c;
+  --good-bg: #ddf2e7;
+  --bad: #b4362c;
+  --bad-bg: #f8e0dc;
+  --shadow: 0 1px 2px rgba(20, 30, 60, .08), 0 10px 28px rgba(20, 30, 60, .09);
+  --serif: Georgia, "Times New Roman", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --sans: -apple-system, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", "Yu Gothic", Meiryo, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e1320;
+    --panel: #172033;
+    --ink: #e7ebf4;
+    --sub: #98a3bb;
+    --line: #2a3450;
+    --accent: #7ea2ff;
+    --accent-ink: #0e1320;
+    --good: #5fd29b;
+    --good-bg: #13342a;
+    --bad: #ff8d81;
+    --bad-bg: #3c1d1a;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 28px rgba(0, 0, 0, .35);
+  }
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  line-height: 1.6;
+  -webkit-text-size-adjust: 100%;
+}
+main { max-width: 680px; margin: 0 auto; padding: 20px 16px 48px; }
+[hidden] { display: none !important; }
+h1 { font-family: var(--serif); font-size: 1.5rem; margin: 8px 0 4px; letter-spacing: .01em; }
+h2 { font-size: 1rem; margin: 0 0 8px; }
+.lead { color: var(--sub); margin: 0 0 20px; font-size: .92rem; }
+button, select, input { font: inherit; color: inherit; }
+button:focus-visible, select:focus-visible, input:focus-visible, .card:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.row { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; }
+.unit-list { display: grid; gap: 2px; margin: 4px 0 8px; }
+.unit-list label, .opt label { display: flex; align-items: center; gap: 10px; padding: 6px 4px; cursor: pointer; border-radius: 6px; }
+.unit-list label:hover, .opt label:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.unit-list .n { margin-left: auto; color: var(--sub); font-variant-numeric: tabular-nums; }
+input[type=checkbox], input[type=radio] { width: 18px; height: 18px; accent-color: var(--accent); }
+select {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+.btn {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 10px;
+  padding: 10px 18px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.primary:disabled { opacity: .45; cursor: not-allowed; }
+.btn.small { padding: 4px 10px; font-weight: 500; font-size: .85rem; }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--sub); }
+.pool { font-size: .95rem; color: var(--sub); margin: 4px 0 12px; }
+.pool b { color: var(--ink); font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.note { color: var(--sub); font-size: .85rem; }
+.error { color: var(--bad); }
+
+/* study */
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.progress-text { font-variant-numeric: tabular-nums; font-weight: 600; }
+.bar { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; margin-bottom: 18px; }
+.bar > i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .25s; }
+
+.card { perspective: 1400px; width: 100%; cursor: pointer; user-select: none; -webkit-user-select: none; border-radius: 16px; }
+.card-inner { display: grid; transform-style: preserve-3d; transition: transform .45s cubic-bezier(.3, .7, .2, 1); }
+.card.flipped .card-inner { transform: rotateY(180deg); }
+.card.no-anim .card-inner { transition: none; }
+.face {
+  grid-area: 1 / 1;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  min-height: 320px;
+  padding: 18px 22px 22px;
+  display: flex;
+  flex-direction: column;
+}
+.face.back { transform: rotateY(180deg); }
+.card:not(.flipped) .back, .card.flipped .front { pointer-events: none; }
+.face .tag { color: var(--sub); font-size: .8rem; display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 30px; }
+.face .body { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 12px; padding: 8px 0; }
+.face .hint { color: var(--sub); font-size: .8rem; text-align: center; }
+.word { font-family: var(--serif); font-size: clamp(2rem, 9vw, 3.3rem); line-height: 1.2; text-align: center; overflow-wrap: anywhere; }
+.meaning { font-size: clamp(1.25rem, 5vw, 1.75rem); line-height: 1.5; text-align: center; font-weight: 600; }
+.usage { text-align: center; color: var(--accent); font-family: var(--serif); font-size: 1rem; }
+.example { font-family: var(--serif); font-size: 1.02rem; color: var(--ink); border-top: 1px solid var(--line); padding-top: 12px; margin-top: 4px; }
+.example .play { margin-left: 6px; vertical-align: middle; }
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+.actions .btn { padding: 16px 10px; font-size: 1.05rem; border-width: 2px; }
+.btn.bad { color: var(--bad); border-color: var(--bad); background: var(--bad-bg); }
+.btn.good { color: var(--good); border-color: var(--good); background: var(--good-bg); }
+.btn.bad:disabled, .btn.good:disabled { opacity: .5; }
+.keys { text-align: center; color: var(--sub); font-size: .8rem; margin-top: 10px; }
+
+/* result */
+.score { text-align: center; padding: 8px 0 4px; }
+.score .big { font-family: var(--serif); font-size: 3.2rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.score .big small { font-size: 1.4rem; color: var(--sub); }
+.missed { list-style: none; margin: 0; padding: 0; }
+.missed li { padding: 10px 0; border-top: 1px solid var(--line); }
+.missed li:first-child { border-top: 0; }
+.missed .w { font-family: var(--serif); font-size: 1.15rem; font-weight: 700; }
+.missed .m { color: var(--ink); }
+.missed .e { color: var(--sub); font-size: .88rem; font-family: var(--serif); }
+.btns { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+.drop { border: 2px dashed var(--line); border-radius: 12px; padding: 18px; text-align: center; }
+.drop.over { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+
+@media (prefers-reduced-motion: reduce) {
+  .card-inner, .bar > i { transition: none; }
+}
+</style>
+</head>
+<body>
+<main>
+
+<!-- 読み込み中 / 読み込み失敗 -->
+<section id="screen-load">
+  <h1 id="title-load"></h1>
+  <p class="lead" id="load-msg">単語ファイルを読み込んでいます…</p>
+  <div class="panel drop" id="drop" hidden>
+    <p class="error" id="load-err"></p>
+    <p class="note">ファイルを直接開いている場合は、ブラウザの制限で自動読み込みできません。CSVファイルをここにドロップするか、下のボタンで選んでください。</p>
+    <input type="file" id="file" accept=".csv,text/csv" hidden>
+    <button class="btn primary" id="pick">CSVファイルを選ぶ</button>
+  </div>
+</section>
+
+<!-- 設定 -->
+<section id="screen-setup" hidden>
+  <h1 id="title-setup"></h1>
+  <p class="lead" id="setup-lead"></p>
+
+  <div class="panel">
+    <h2>出題範囲</h2>
+    <div class="unit-list" id="units"></div>
+    <div class="row">
+      <button class="btn small" id="all-on">すべて選ぶ</button>
+      <button class="btn small" id="all-off">すべて外す</button>
+    </div>
+  </div>
+
+  <div class="panel opt">
+    <h2>出題方法</h2>
+    <div class="row" style="margin-bottom:6px">
+      <label><input type="radio" name="dir" value="en2ja" checked> 英語 → 日本語</label>
+      <label><input type="radio" name="dir" value="ja2en"> 日本語 → 英語</label>
+    </div>
+    <div class="row">
+      <label for="count">問題数</label>
+      <select id="count"></select>
+      <label><input type="checkbox" id="shuffle" checked> ランダムな順番にする</label>
+    </div>
+    <div class="row" style="margin-top:6px">
+      <label><input type="checkbox" id="only-missed"> 覚えていない語だけを出す <span class="note" id="missed-n"></span></label>
+    </div>
+  </div>
+
+  <p class="pool">出題する語: <b id="pool-n">0</b> 語</p>
+  <div class="btns">
+    <button class="btn primary" id="start">スタート</button>
+    <button class="btn ghost" id="clear-missed" hidden>覚えていない語の記録を消す</button>
+  </div>
+</section>
+
+<!-- 学習 -->
+<section id="screen-study" hidden>
+  <div class="topbar">
+    <span class="progress-text" id="progress-text"></span>
+    <button class="btn small ghost" id="quit">やめる</button>
+  </div>
+  <div class="bar"><i id="bar"></i></div>
+
+  <div class="card" id="card" role="button" tabindex="0" aria-label="カードをめくる">
+    <div class="card-inner">
+      <div class="face front" id="front"></div>
+      <div class="face back" id="back"></div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn bad" id="btn-unknown">まだ覚えていない</button>
+    <button class="btn good" id="btn-known">覚えた</button>
+  </div>
+  <p class="keys">スペース: めくる / ←: まだ / →: 覚えた</p>
+</section>
+
+<!-- 結果 -->
+<section id="screen-result" hidden>
+  <h1>結果</h1>
+  <div class="panel score" aria-live="polite">
+    <div class="big"><span id="r-known">0</span><small> / <span id="r-total">0</span></small></div>
+    <p class="note" id="r-msg"></p>
+  </div>
+  <div class="panel" id="r-missed-panel" hidden>
+    <h2>覚えていなかった語</h2>
+    <ul class="missed" id="r-missed"></ul>
+  </div>
+  <div class="btns">
+    <button class="btn primary" id="retry-missed">覚えていない語をもう一度</button>
+    <button class="btn" id="back-setup">設定に戻る</button>
+  </div>
+</section>
+
+</main>
+
+<script>
+/* ============================================================
+   コンフィグ
+   別の級(1級〜5級)のページを作るときは、このHTMLをコピーして
+   csvFile と title を書き換えるだけで使えます。
+   CSVは1行目が見出し行で、columns の名前と同じ見出しの列を読みます。
+   ============================================================ */
+const CONFIG = {
+  csvFile: 'deru-tan-zentango_reibun_pre1.csv',  // 読み込むCSV(このHTMLからの相対パス)
+  title: '出る単 英検準1級 単語フラッシュカード',
+  columns: {                                 // CSVの見出し名
+    section: '編',
+    number:  '番号',
+    word:    '語句',
+    meaning: '意味',
+    usage:   '語法(前置詞など)',
+    group:   '区分',
+    example: '例文'
+  },
+  countOptions: [10, 20, 30, 50, 100]        // 問題数の選択肢(「すべて」は自動で追加)
+};
+
+/* ---------- CSV 読み込み ---------- */
+function decodeBuffer(buf) {
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(buf);
+  } catch (e) {
+    return new TextDecoder('shift_jis').decode(buf);   // Excelで保存した日本語CSV向け
+  }
+}
+
+function parseCSV(text) {
+  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+  const rows = [];
+  let row = [], cell = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"') {
+        if (text[i + 1] === '"') { cell += '"'; i++; } else { q = false; }
+      } else { cell += c; }
+    } else if (c === '"') { q = true; }
+    else if (c === ',') { row.push(cell); cell = ''; }
+    else if (c === '\n' || c === '\r') {
+      if (c === '\r' && text[i + 1] === '\n') i++;
+      row.push(cell); rows.push(row); row = []; cell = '';
+    } else { cell += c; }
+  }
+  if (cell !== '' || row.length) { row.push(cell); rows.push(row); }
+  return rows.filter(r => r.some(x => x.trim() !== ''));
+}
+
+function buildWords(table) {
+  if (table.length < 2) throw new Error('データ行がありません。');
+  const head = table[0].map(h => h.trim());
+  const cols = CONFIG.columns, idx = {};
+  const missing = [];
+  for (const key of Object.keys(cols)) {
+    const i = head.indexOf(cols[key]);
+    idx[key] = i;
+    if (i < 0 && (key === 'word' || key === 'meaning')) missing.push(cols[key]);
+  }
+  if (missing.length) throw new Error('見出しが見つかりません: ' + missing.join('、') + '(コンフィグの columns を確認してください)');
+  const get = (r, key) => (idx[key] >= 0 && r[idx[key]] != null ? r[idx[key]].trim() : '');
+  const out = [];
+  for (let n = 1; n < table.length; n++) {
+    const r = table[n];
+    const w = {
+      section: get(r, 'section'), number: get(r, 'number'), word: get(r, 'word'),
+      meaning: get(r, 'meaning'), usage: get(r, 'usage'), group: get(r, 'group'),
+      example: get(r, 'example')
+    };
+    if (!w.word || !w.meaning) continue;
+    w.id = w.section + '|' + w.number + '|' + w.word;
+    w.unit = w.section + (w.group ? ' ' + w.group : '');
+    out.push(w);
+  }
+  if (!out.length) throw new Error('有効な語が1つも読み込めませんでした。');
+  return out;
+}
+
+/* ---------- 画面まわりの共通処理 ---------- */
+const $ = id => document.getElementById(id);
+const screens = ['load', 'setup', 'study', 'result'];
+function show(name) {
+  screens.forEach(s => { $('screen-' + s).hidden = (s !== name); });
+  window.scrollTo(0, 0);
+}
+function mk(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+function shuffled(a) {
+  a = a.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/* ---------- 覚えていない語の保存(ブラウザ内) ---------- */
+const STORE_KEY = 'flashcard-missed:' + CONFIG.csvFile;
+function loadMissed() {
+  try { return new Set(JSON.parse(localStorage.getItem(STORE_KEY) || '[]')); }
+  catch (e) { return new Set(); }
+}
+function saveMissed(set) {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify([...set])); } catch (e) { /* 保存できない環境では記録なし */ }
+}
+
+/* ---------- 発音(ブラウザの読み上げ機能) ---------- */
+function speak(text) {
+  if (!('speechSynthesis' in window)) return;
+  const clean = text.replace(/[~〜]/g, ' ').replace(/\[[^\]]*\]/g, ' ').replace(/[()]/g, ' ').replace(/\s+/g, ' ').trim();
+  const u = new SpeechSynthesisUtterance(clean);
+  u.lang = 'en-US';
+  u.rate = 0.9;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(u);
+}
+function speakButton(text, label) {
+  const b = mk('button', 'btn small', label || '発音');
+  b.type = 'button';
+  b.setAttribute('aria-label', '英語を読み上げる');
+  b.addEventListener('click', e => { e.stopPropagation(); speak(text); });
+  return b;
+}
+
+/* ---------- 状態 ---------- */
+let ALL = [];          // 読み込んだ全単語
+let UNITS = [];        // [{name, words}]
+let deck = [], pos = 0, dir = 'en2ja';
+let sessionKnown = 0, sessionMissed = [];
+
+/* ---------- 読み込み ---------- */
+function loadText(text) {
+  try {
+    ALL = buildWords(parseCSV(text));
+  } catch (err) {
+    $('load-msg').textContent = '読み込めませんでした。';
+    $('load-err').textContent = err.message;
+    $('drop').hidden = false;
+    show('load');
+    return;
+  }
+  initSetup();
+}
+
+async function loadFromConfig() {
+  try {
+    const res = await fetch(CONFIG.csvFile, { cache: 'no-cache' });
+    if (!res.ok) throw new Error(CONFIG.csvFile + ' を取得できませんでした(HTTP ' + res.status + ')。');
+    loadText(decodeBuffer(await res.arrayBuffer()));
+  } catch (err) {
+    $('load-msg').textContent = '自動で読み込めませんでした。';
+    $('load-err').textContent = (err && err.message) || String(err);
+    $('drop').hidden = false;
+  }
+}
+
+function readFile(file) {
+  if (!file) return;
+  const fr = new FileReader();
+  fr.onload = () => loadText(decodeBuffer(fr.result));
+  fr.readAsArrayBuffer(file);
+}
+
+/* ---------- 設定画面 ---------- */
+function initSetup() {
+  UNITS = [];
+  const map = new Map();
+  for (const w of ALL) {
+    if (!map.has(w.unit)) { const u = { name: w.unit, words: [] }; map.set(w.unit, u); UNITS.push(u); }
+    map.get(w.unit).words.push(w);
+  }
+  const box = $('units');
+  box.textContent = '';
+  UNITS.forEach((u, i) => {
+    const label = mk('label');
+    const cb = mk('input'); cb.type = 'checkbox'; cb.checked = true; cb.dataset.i = i;
+    cb.addEventListener('change', updatePool);
+    label.append(cb, mk('span', null, u.name), mk('span', 'n', u.words.length + '語'));
+    box.append(label);
+  });
+
+  const sel = $('count');
+  sel.textContent = '';
+  CONFIG.countOptions.forEach(n => { const o = mk('option', null, n + '問'); o.value = n; sel.append(o); });
+  const all = mk('option', null, 'すべて'); all.value = 'all'; sel.append(all);
+  sel.value = CONFIG.countOptions.includes(20) ? '20' : 'all';
+
+  $('setup-lead').textContent = ALL.length + '語を読み込みました。範囲と出題方法を選んでスタートしてください。';
+  refreshMissedInfo();
+  updatePool();
+  show('setup');
+}
+
+function selectedWords() {
+  const on = [...document.querySelectorAll('#units input')].filter(c => c.checked).map(c => UNITS[+c.dataset.i]);
+  let words = on.flatMap(u => u.words);
+  if ($('only-missed').checked) {
+    const m = loadMissed();
+    words = words.filter(w => m.has(w.id));
+  }
+  return words;
+}
+
+function updatePool() {
+  const n = selectedWords().length;
+  $('pool-n').textContent = n;
+  $('start').disabled = n === 0;
+}
+
+function refreshMissedInfo() {
+  const known = new Set(ALL.map(w => w.id));
+  const m = [...loadMissed()].filter(id => known.has(id));
+  $('missed-n').textContent = '(記録: ' + m.length + '語)';
+  $('only-missed').disabled = m.length === 0;
+  if (m.length === 0) $('only-missed').checked = false;
+  $('clear-missed').hidden = m.length === 0;
+}
+
+/* ---------- 学習 ---------- */
+function startDeck(words) {
+  dir = document.querySelector('input[name=dir]:checked').value;
+  let list = $('shuffle').checked ? shuffled(words) : words.slice();
+  const c = $('count').value;
+  if (c !== 'all') list = list.slice(0, +c);
+  beginSession(list);
+}
+
+function beginSession(list) {
+  deck = list; pos = 0; sessionKnown = 0; sessionMissed = [];
+  show('study');
+  renderCard(true);
+}
+
+function cardTag(w, withSpeak) {
+  const tag = mk('div', 'tag');
+  tag.append(mk('span', null, w.section + ' ' + w.number + (w.group ? '(' + w.group + ')' : '')));
+  tag.append(withSpeak ? speakButton(w.word) : mk('span'));
+  return tag;
+}
+
+function renderCard(resetFlip) {
+  const w = deck[pos];
+  const card = $('card');
+  if (resetFlip) {
+    card.classList.add('no-anim');
+    card.classList.remove('flipped');
+  }
+  const front = $('front'), back = $('back');
+  front.textContent = ''; back.textContent = '';
+  // 表面: 英→日は英語、日→英は意味だけを出す
+  const fBody = mk('div', 'body');
+  fBody.append(dir === 'en2ja' ? mk('div', 'word', w.word) : mk('div', 'meaning', w.meaning));
+  front.append(cardTag(w, dir === 'en2ja'), fBody, mk('div', 'hint', 'タップでめくる'));
+  // 裏面: 英語・意味・語法・例文をまとめて出す
+  const bBody = mk('div', 'body');
+  bBody.append(mk('div', 'word', w.word), mk('div', 'meaning', w.meaning));
+  if (w.usage) bBody.append(mk('div', 'usage', w.usage));
+  if (w.example) {
+    const ex = mk('div', 'example', w.example);
+    const sp = speakButton(w.example, '例文');
+    sp.classList.add('play');
+    ex.append(sp);
+    bBody.append(ex);
+  }
+  back.append(cardTag(w, true), bBody);
+
+  $('progress-text').textContent = (pos + 1) + ' / ' + deck.length;
+  $('bar').style.width = (pos / deck.length * 100) + '%';
+  if (resetFlip) {
+    void card.offsetWidth;
+    card.classList.remove('no-anim');
+  }
+}
+
+function flip() {
+  $('card').classList.toggle('flipped');
+}
+
+function answer(known) {
+  const w = deck[pos];
+  const m = loadMissed();
+  if (known) { sessionKnown++; m.delete(w.id); }
+  else { sessionMissed.push(w); m.add(w.id); }
+  saveMissed(m);
+  pos++;
+  if (pos >= deck.length) { finish(); return; }
+  renderCard(true);
+}
+
+function finish() {
+  const answered = sessionKnown + sessionMissed.length;
+  $('r-known').textContent = sessionKnown;
+  $('r-total').textContent = answered;
+  $('r-msg').textContent = answered === 0 ? '' :
+    (sessionMissed.length === 0 ? 'すべて覚えていました。' : sessionMissed.length + '語が「まだ覚えていない」として記録されました。');
+  const ul = $('r-missed');
+  ul.textContent = '';
+  for (const w of sessionMissed) {
+    const li = mk('li');
+    const head = mk('div');
+    head.append(mk('span', 'w', w.word), document.createTextNode('  '), mk('span', 'm', w.meaning));
+    li.append(head);
+    if (w.example) li.append(mk('div', 'e', w.example));
+    ul.append(li);
+  }
+  $('r-missed-panel').hidden = sessionMissed.length === 0;
+  $('retry-missed').hidden = sessionMissed.length === 0;
+  show('result');
+}
+
+/* ---------- イベント ---------- */
+$('pick').addEventListener('click', () => $('file').click());
+$('file').addEventListener('change', e => readFile(e.target.files[0]));
+const drop = $('drop');
+['dragover', 'dragenter'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => readFile(e.dataTransfer.files[0]));
+
+$('all-on').addEventListener('click', () => { document.querySelectorAll('#units input').forEach(c => c.checked = true); updatePool(); });
+$('all-off').addEventListener('click', () => { document.querySelectorAll('#units input').forEach(c => c.checked = false); updatePool(); });
+$('only-missed').addEventListener('change', updatePool);
+$('start').addEventListener('click', () => startDeck(selectedWords()));
+$('clear-missed').addEventListener('click', () => {
+  if (confirm('覚えていない語の記録をすべて消しますか?')) { saveMissed(new Set()); refreshMissedInfo(); updatePool(); }
+});
+
+$('card').addEventListener('click', e => { if (!e.target.closest('button')) flip(); });
+$('btn-known').addEventListener('click', () => answer(true));
+$('btn-unknown').addEventListener('click', () => answer(false));
+$('quit').addEventListener('click', () => {
+  if (sessionKnown + sessionMissed.length > 0) finish();
+  else { refreshMissedInfo(); updatePool(); show('setup'); }
+});
+$('retry-missed').addEventListener('click', () => beginSession(shuffled(sessionMissed)));
+$('back-setup').addEventListener('click', () => { refreshMissedInfo(); updatePool(); show('setup'); });
+
+document.addEventListener('keydown', e => {
+  if ($('screen-study').hidden) return;
+  if (e.target.closest && e.target.closest('button, select, input')) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { /* 矢印だけは下で処理 */ } else return;
+  }
+  if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flip(); }
+  else if (e.key === 'ArrowRight') { e.preventDefault(); answer(true); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); answer(false); }
+});
+
+/* ---------- 起動 ---------- */
+document.title = CONFIG.title;
+$('title-load').textContent = CONFIG.title;
+$('title-setup').textContent = CONFIG.title;
+loadFromConfig();
+</script>
+</body>
+</html>
